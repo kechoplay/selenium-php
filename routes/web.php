@@ -17,4 +17,5 @@ Route::get('/', function () {
     return view('index');
 });
 
-Route::get('/download/film');
+Route::get('/download/comic/get-list-collect', ['as' => 'getListCollect', 'uses' => 'DownloadComicController@getListCollect']);
+Route::post('/download/comic/download-chap', ['as' => 'downloadChap', 'uses' => 'DownloadComicController@downloadChap']);
