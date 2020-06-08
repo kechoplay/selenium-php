@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Chapter;
 use App\Comic;
+use App\ImageComic;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -37,24 +39,45 @@ class DownloadComicController extends Controller
             'slug_name' => Str::slug($comicName),
             'total_episodes' => $totalEpisodes
         ];
-        Comic::insertOrUpdated($data);
+        $comic = Comic::insertOrUpdated($data);
 
-        return view('list_chapter', compact('listChapters', 'comicName'));
+        return view('list_chapter', compact('listChapters', 'comicName', 'comic'));
     }
 
     public function downloadChap(Request $request)
     {
         $linkDownload = $request->linkDownload;
         $chapterName = $request->chapterName;
+        $comicId = $request->comic_id;
 
-        foreach ($linkDownload as $link) {
-
+        foreach ($linkDownload as $key => $link) {
+            $episode = substr($chapterName[$key], strrpos($chapterName[$key], ' ') + 1);
+            $chapter = Chapter::create([
+                'comic_id' => $comicId,
+                'chapter_name' => $chapterName[$key],
+                'episode' => (int)$episode,
+                'original_link' => $link
+            ]);
             $html = file_get_contents($link);
             $domHtml = HtmlDomParser::str_get_html($html);
-            $imageList = $domHtml->find("div#viewer img");
-            echo($domHtml);die;
+            $scripts = $domHtml->find("script");
+            foreach ($scripts as $script) {
+                $pattern = '/var slides_page_url_path = \["(.*)"\];/';
+                preg_match($pattern, $script->innertext(), $matches);
+                if (!isset($matches[1]))
+                    continue;
+                $url_path = str_replace("\"", "", $matches[1]);
+                $urlArray = explode(",", $url_path);
+                foreach ($urlArray as $url) {
+                    ImageComic::create([
+                        'comic_id' => $comicId,
+                        'chapter_id' => $chapter->id,
+                        'image_path' => $url
+                    ]);
+                }
+            }
         }
-//        Image::
-        dd($chapterName);
+
+        return response()->json([], 200);
     }
 }

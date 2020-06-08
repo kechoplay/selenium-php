@@ -25,9 +25,9 @@ class Comic extends Model
     {
         $isset = self::whereRaw('LOWER(`name`) LIKE ?', trim(strtolower($data['name'])))->get()->first();
         if (!$isset) {
-            self::create($data);
+            return self::create($data);
         } else {
-            self::where('id', $isset->id)->update(['total_episodes' => $data['total_episodes']]);
+            return self::where('id', $isset->id)->updateOrCreate(['total_episodes' => $data['total_episodes']]);
         }
     }
 }

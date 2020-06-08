@@ -4,6 +4,7 @@
     <h3>{{ $comicName }}</h3>
     <button type="button" class="btn btn-primary" id="downloadAll">Tải đầy đủ</button>
     <div class="table-responsive">
+        <input type="hidden" name="comic" id="comic" value="{{ $comic->id }}">
         <table class="table table-hover">
             <thead>
             <tr>
@@ -52,10 +53,11 @@
                 data: {
                     linkDownload: linkDownload,
                     chapterName: chapterName,
-                    type: 'all'
+                    type: 'all',
+                    comic_id: $('#comic').val()
                 },
                 success: function (data) {
-
+                    location.reload();
                 }
             })
         })
